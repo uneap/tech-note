@@ -35,4 +35,17 @@ EJB -> MVC -> spring MVC
 - 기존 oop의 중복 코드 단점을 해결하고자 나온 방식이다.
 - 실행할 때 비즈니스 코드에 앞, 뒤 등 원하는 때에 공통 작업을 수행할 수 있게 하여 중복 코드를 줄인다.
 
+## Application Context란?
+![image](https://user-images.githubusercontent.com/25525648/116488616-c3b34580-a8cd-11eb-84cb-eaf6b29955b9.png)
+- Web Application 최상단에 위치하고 있는 Context
+- Spring에서 ApplicationContext란 BeanFactory를 상속받고 있는 Context
+- Spring에서 생성되는 Bean에 대한 IoC Container (또는 Bean Container)
+- 빈 설정정보를 토대로 빈을 생성하고 관리한다.
+- Bean 객체를 생성하고 관리하는 기능
+
+## @controller을 붙인 클래스에서 @RequestMapping을 통해 url과 매핑되고, view를 리턴함으로써 url에 가게되면 해당 view가 보여지는데 내부 구조
+- ViewResolver가 하는 역할
+- 다만 스프링 부트에서는 스프링 프레임워크보다 내부적으로 더 깊이 감춰져 있기 때문에 설정을 조정할 일은 없음.
+- 만약 컨트롤러에서 “account/createForm”이라는 문자열을 받으면, “src/resources/templates/“를 앞에 “.html”을 뒤에 붙여서 물리적 위치의 파일을 지정
+- 이 과정이 ViewResolver가 해주는 역할
 
