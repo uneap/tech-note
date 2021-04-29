@@ -1,5 +1,5 @@
 # Spring
-
+![](https://i.imgur.com/L3s6SfI.png)
 ## spring이 생겨나게 된 이유?
 EJB -> MVC -> spring MVC
 우선 EJB의 경우 view에 data 접근하는 코드, 비지니스 로직등이 분리되지 않고 합쳐져있었다.
