@@ -1,7 +1,10 @@
 # DB & mongoDB
 > 무결성: 데이터의 정확성과 일관성을 유지하고 보증하는 것
+
 > 카디널리티: 특정 데이터 집합에서 유니크한 값의 개수
+
 > 정합성: 서로 모순없이 일치해야한다.
+
 > 가용성: 시스템이 정상적으로 사용 가능한 정도
 ## 정규화
 이상현상이 일어나지 않도록 중복을 최대한 줄여 데이터를 논리적으로 저장하는 것
@@ -28,10 +31,15 @@
 ## isolation level
 여러 트랜잭션 중에 한 트랜잭션이 변경한 값을 보이게 할지 말지를 결정하는 것이다. 
 ### uncommitted read
-트랜잭션이 update나 insert 연산을 거친 뒤 commit하지 않았음에도 다른 트랜잭션에서 이에 대한 값을 select하면 볼 수 있다.
+![](https://i.imgur.com/yeJNpmH.jpg)
+트랜잭션이 update나 insert 연산을 거친 뒤 commit하지 않았음에도 다른 트랜잭션에서 이에 대한 값을 select하면 볼 수 있다..
+
 ### committed read
+![](https://i.imgur.com/jg6aq90.jpg)
 트랜잭션이 update나 insert 연산을 하면 commit하기 전까지는  undo 영역에 저장된 이전 값을 볼 수 있고 commit을 하면 결과값을 볼 수 있다. read lock을 걸고 있다. undo 영역에 이전 값이 저장되어있어서 이를 조회할 수 있다. **정합성**이 깨진다.
+
 ### repeatable read
+![이름 없는 노트북 (4)-1](https://user-images.githubusercontent.com/25525648/120070667-a6d58200-c0c6-11eb-9433-93bb66654bde.jpg)
 트랜잭션이 update나 insert 연산을 하면 commit하기 전과 한 후에도 결과값을 볼 수 없다. undo 영역에 있는 값만을 조회할 수 있다. 그러나 실제로 결과값은 undo 영역이 아닌 원본 db를 수정하기 때문에 count를 결 경우에는 결과값이 반영된 원본 db에 대한 연산 결과를 본다. phantom 현상이라고 한다.
 ### serializable
 x-lock을 걸었다. 따라서 다른 트랜잭션이 연산한 결과를 볼 수 없다.
