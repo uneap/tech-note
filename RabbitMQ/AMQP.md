@@ -53,7 +53,7 @@ RabbitMQ Server가 재기동할 경우, Queue는 모두 제거되는데, 이를 
 2. 처리 속도를 높이기 위해 consumer하나를 추가했다고 가정하자.
 3. 컨슈머 3번은 가져갈 메세지가 없다. 따라서 유휴한 상태로 남게 된다.
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/f34ef98f-e857-4e07-b048-053c8166fab4/Untitled.png)
+![Untitled - 2023-02-09T162035 344](https://user-images.githubusercontent.com/25525648/217744401-90a7821a-925e-4bd3-9961-bede1494ef35.png)
 
 따라서, consumer가 많거나 처리 시간이 긴 경우 메세지가 모든 consumer에게 고르게 전달될 수 있도록 제한을 거는 게 좋음.
 
