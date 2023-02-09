@@ -7,11 +7,11 @@ Producer는 설정에 따라 RabbitMQ의 ACK를 기다리지 않을 수도 있�
 
 1. Producer는 RabbitMQ에게 메세지 전송
 2. RabbitMQ는 수신한 메세지를 Exchange에게 전달
-3. Exchange는 Exchange에 설정된 규칙에 따라 수신한 메세지를 버리거나, Queue 혹은 다른 Exchange에게 전달한다.
+3. Exchange는 Exchange에 설정된 규칙에 따라 Queue 혹은 다른 Exchange에게 전달한다.
 4.  Queue가 Mirroring되어 있을 경우
     1. 메세지는 미러링된 모든 큐에 복사된 이후 producer에게 ACK를 보낸다.
-5. 그렇지 않은 경우
-    1. 메세지가 버려진다면 RabbitMQ는 Producer에게 바로 ACK를 전송한다.
+5. mirroring이 아닐 경우
+    1. 큐가 가득 차있어서 더이상 메세지를 저장할 상황이 되지 않을 경우, 메세지를 버리고, RabbitMQ는 Producer에게 ACK를 전송한다.
     2. 메세지가 큐로 전송되면 큐가 메세지를 저장한 이후에 Producer에게 ACK를 보낸다.
 
 > rabbitMQ는 정상적으로 메세지를 수신했으나, Network 장애로 인해 ACK가 Producer에게 전송되지 못할 경우
