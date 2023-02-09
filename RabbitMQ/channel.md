@@ -7,6 +7,7 @@
 connection은 TCP 연결인데, Channel 이 없을 경우 TCP 연결을 무수히 많게 연결해야할 것이다. 그러나 그렇게 되면 성능이 급속도로 낮아질 것이다.
 
 Channel은 가상 연결로써 오버헤드를 낮출 수 있다.
+프로듀스와 컨슘을 같이 할 수 있게끔 하는 connection 내부에 정의된 가상의 연결.
 
 [https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a](https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a)
 
@@ -16,7 +17,7 @@ Channel은 가상 연결로써 오버헤드를 낮출 수 있다.
 
  예를 들어 앱 'A'가 대기열에서 수신 대기 중이고 앱 'B'가 메시지를 수신하면 처리를 시작한다고 가정해 보겠습니다.
 
- 만약 'A' 앱이 현재 동작을 승인하기 전에 'B' 앱에 메시지를 보내려고 한다면 어떻게 될까요? 
+ 만약 'A' 앱이 현재 동작을 승인하기 전에 rabbitMQ에 메세지를 전송하고자 한다고 가정하면?
 
 안 됩니다. 해당 채널에서 수행된 이전 트랜잭션에 대한 처리가 완료될 때까지 기다려야 합니다.
 
