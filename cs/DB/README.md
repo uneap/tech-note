@@ -1,78 +1,117 @@
-# DB & mongoDB
-> 무결성: 데이터의 정확성과 일관성을 유지하고 보증하는 것
+# isolation level
 
-> 카디널리티: 특정 데이터 집합에서 유니크한 값의 개수
+동시에 여러 트랜잭션이 처리될 때, 특정 트랜잭션이 다른 트랜잭션에서 변경하거나 조회하는 데이터를 볼 수 있도록 허용할지 말지를 결정하는 것
 
-> 정합성: 서로 모순없이 일치해야한다.
+격리 수준이 높아질 수록, 동시 처리 성능이 낮아진다.
 
-> 가용성: 시스템이 정상적으로 사용 가능한 정도
-## 정규화
-이상현상이 일어나지 않도록 중복을 최대한 줄여 데이터를 논리적으로 저장하는 것
-## 이상현상
-삽입, 갱신, 삭제 이상이 있는데, 예를들어 삭제 이상 같은 경우, 학생이름, 과, 등록금 이런 table이라고 가정했을 경우, 학생이 모두 졸업하고 입학한 학생이 없다고 했을 때 table내에 데이터가 다 삭제되는데 이 때 과의 등록금까지 없어지는 현상을 말할 수 있다.
+| 격리 수준 | DIRTY READ | NON-REPEATABLE READ | PHANTOM READ |
+| --- | --- | --- | --- |
+| READ UNCOMMITTED | O | O | O |
+| READ COMMITTED |  | O | O |
+| REPEATABLE READ |  |  | O(InnoDB는 발생 X) |
+| SERIALIZABLE |  |  |  |
 
-## index
-### 왜 인덱스를 사용하느냐?
-우선 데이터베이스의 성능을 튜닝하는 것의 대부분은 디스크 I/O를 줄이는 것이다.
-디스크 I/O를 줄이기 위해서는 대부분의 처리를 메모리에서 할 수 있도록 버퍼 캐시의 효율성을 높여야 한다. 
-따라서 인덱스를 사용하게 되면 데이터를 찾는 데 훨씬 효율적이므로 버퍼 캐시의 효율성을 높인다. 
-인덱스 탐색을 할 때 정렬이 되어있고 b-tree 인덱싱으로 위치를 알기가 훨씬 빨라진다.
+### ReadUncommitted
 
-### 특징
-- 쓰기할 때마다 다시 정렬해야하므로 느리다.
-    - 실제로 현업에서는 대규모 데이터를 쓰고자 할 때 인덱스를 잠시 없앴다가 다 쓰고 다시 인덱싱하곤 한다고 한다.
-- 읽기 작업이 매우 빠르다.
-- 특정 데이터 집합에서 유니크한 값의 개수를 카디널리티라 하는데, 카디널리티가 높을 수록 빠른 탐색을 가능하게 한다.
+transaction A와 transaction B가 있다고 가정하자.
 
-## 트랜잭션
-무결성을 유지하기 위해 논리적으로 묶은 작업의 단위
-예를 들면 master db가 있고 slave db가 있을 경우, 가격 할인을 master db엔 반영이 되었으나 slave db에는 반영이 되지 않으면 안되므로, 이 경우 트랜잭션으로 두 db에 반영하여 무결성을 유지하도록 한다.
+```java
+transaction A
+update ~~
+commit
+```
 
-## isolation level
-여러 트랜잭션 중에 한 트랜잭션이 변경한 값을 보이게 할지 말지를 결정하는 것이다. 
-### uncommitted read
-![](https://i.imgur.com/yeJNpmH.jpg)
-트랜잭션이 update나 insert 연산을 거친 뒤 commit하지 않았음에도 다른 트랜잭션에서 이에 대한 값을 select하면 볼 수 있다..
+```java
+transaction B
+select ~~
+```
 
-### committed read
-![](https://i.imgur.com/jg6aq90.jpg)
-트랜잭션이 update나 insert 연산을 하면 commit하기 전까지는  undo 영역에 저장된 이전 값을 볼 수 있고 commit을 하면 결과값을 볼 수 있다. read lock을 걸고 있다. undo 영역에 이전 값이 저장되어있어서 이를 조회할 수 있다. **정합성**이 깨진다.
+transaction A가 수행될 때, commit 전에 transaction B가 실행된다고 하면, 해당 select문을 통해 조회된 결과는 commit 후 결과이다.
 
-### repeatable read
-![이름 없는 노트북 (4)-1](https://user-images.githubusercontent.com/25525648/120070667-a6d58200-c0c6-11eb-9433-93bb66654bde.jpg)
-트랜잭션이 update나 insert 연산을 하면 commit하기 전과 한 후에도 결과값을 볼 수 없다. undo 영역에 있는 값만을 조회할 수 있다. 그러나 실제로 결과값은 undo 영역이 아닌 원본 db를 수정하기 때문에 count를 결 경우에는 결과값이 반영된 원본 db에 대한 연산 결과를 본다. phantom 현상이라고 한다.
-### serializable
-x-lock을 걸었다. 따라서 다른 트랜잭션이 연산한 결과를 볼 수 없다.
+해당 level 에서는 dirty read라는 문제점이 있다.
 
-### 몽고디비의 isolation level
+dirty read란, 트랜잭션이 커밋하지 않은 결과를 다른 트랜잭션에서 조회할 수 있는 것을 의미한다.
 
-몽고디비가 사용하는 WiredTiger 스토리지 엔진은 디폴트로 repeatable -read 격리 수준을 갖고 있으나. 엔진이 아무리 격리 수준을 지원한다고 해도 결국 mongoDB 서버가 엔진을 제어하기 때문에 서버에 의존적일 수 밖에 없다.
+따라서 A트랜잭션을 롤백시켜버린다고 하더라도,
 
-## lock
-트랜잭션의 근본이며read lock, write lock, table 별 lock, row 별 lock이 있다.
-read lock은 이 lock이 걸린 것을 읽을 수 있는데 쓰기 및 갱신을 할 수 없다.
-write lock은 모두 되지 않는다.
-table 별 lock은 table단위로 lock이 걸린다.
-row 별 lock은 row에 따라 lock이 걸리는데, 이 경우 데드락이 생길 수 있다. table lock은 데드락이 생기지 않는다.
-(a row에 lock 이 걸려있는 상태에서 다른 b row에 lock이 걸려있는 data를 조회하고자 하는데  lock이 걸려있는 b row 또한 lock이 걸린 a row를 조회하고자하는 상황)
+ B에서 업데이트 된 정보를 조회해버려서 DB상에 저장되지 않은 정보를 처리하게될 수 있다.
 
-## 역사
-몽고 DB의 역사: SNS와 같은 어플리케이션이 생기면서 매우 많은 관계로 이루어져있는 데이터가 많아졌다. 따라서 모든 관계에 대해 transaction을 유지하기 어려웠으며 또한 굳이 transaction으로써 무결성을 유지하지 않아도 되는 어플리케이션의 특성을 갖고 있다. 따라서 몽고 DB와 같이 transaction을 보장하지 않는 DB가 생겼다. (물론 4점대 이후로 transaction이 생겼다.) ****
+, 정합성에 문제가 많은 격리 수준이다.
 
-## cluster(가용성 유지)
-cluster: replica set이라는 복제 단위이다. 가용성을 위해 cluster를 형성한다. db 서버가 하나일 경우 **트래픽이 높아지면** 죽었을 때 지속적으로 서비스를 운영할 수 없다. 그러나 scale out하여 db서버를 복제함으로써 지속적으로 서비스를 운영할 수 있게 된다.
-primary member: 실제 데이터를 쓰는 db서버이다.
-secondary member: primary 서버가 추가한 데이터를 가져와서 프라이머리와 동일한 데이터셋을 유지하는 db서버이다. primary 서버가 죽어버려서 secondary가 primary 서버로 승격되는 현상을 promotion 혹은 step up이라고 한다.
-아비터 member: 레플리카 셋의 멤버로 참여하여, 실제 데이터가 존재하는 곳이 아니라 primary 서버를 간택하는 서버이다.
+### ReadCommitted
 
-## sharding(트래픽 처리, 부하 분산)
-sharding: 트래픽을 분산시키기위해 DB를 나누는 것
-horizontal partitioning: 어떤 컬럼을 기준으로 파티셔닝 하기 때문에 기준이 되는 컬럼이 중요하다.
-테이블을 여러개로 분할하는 방식이다. 테이블이 커짐에 따라 다시 파티셔닝해야한다는 툭징이 있다.
-range based partitioning: 컬럼이나 테이블이 커짐에 따라 분할하는 방식이다. 파티셔닝하는 방식이 예측가능해야한다는 특징이 있다.
-key or hash partitioning: 엔티티를 해쉬함수에 넣어서 나오는 값으로 분할하는 방식이다. 해쉬함수 결과값이 균등하게 분할될 수 있도록 해쉬함수를 설정하는 것이 중요하다.
+위와 같은 가정이라고 한다면,
 
-router(mongos): 클라이언트로부터 전달받은 쿼리를 config server로부터 샤드 정보를 통해 적합한 샤드 서버에게 전달해주고 그 쿼리 결과값을 클라이언트에 전달해주는 역할을 한다.
-config server:샤드 서버의 정보를 관리하는 역할을 한다.
-shard: 여러 개의 replica set으로 cluster를 이루고 있다.
-## 1:1 관계 & 1:n 관계 & n:m 관계
+ undo 영역이 존재하여 transaction A에서 update문을 수행 하기 전 데이터를 undo 영역에 저장하고 있는다.
+
+<aside>
+💡 undo 영역이 있음으로써 생기는 특징은,
+롤백을 가능케 한다. 롤백 시, 해당 영역에 기록된 데이터로 롤백한다.
+트랜잭션의 격리 수준을 높임으로써 높은 동시성을 보장한다. 
+(커밋 전, update와 select는 서로 영향을 받지 않는다.)
+
+</aside>
+
+transactionB는 undo 영역에 저장하고 있는 데이터를 조회하게 된다.
+
+만일 이슈로 인해 transactionA가 롤백 되더라도, 아까와 같이 롤백되었는지를 모르는 상황을 예방할 수 있다.
+
+dirty read에 대해서는 정합성을 보장한다고 할 수 있겠지만,
+
+ 정합성에 어긋나는 상황이 존재한다.
+
+transaction A와 transaction B가 있다고 가정하자.
+
+```java
+transaction A
+Update ~~~
+commit
+
+transaction B
+select ~~
+select ~~
+```
+
+transaction A가 commit 전 transaction B에서 수행되는 select 문이 있고, commit 이후 수행되는 select 문이 있다.
+
+commit 전 select 문에서는 undo 영역을 조회한다.
+
+그러나 non Repeatable read 로, 부정합성의 문제를 야기한다.
+
+commit 이후엔 update 문으로 변경된 데이터를 조회한다.
+
+> 즉, 같은 트랜잭션에서 실행된 쿼리 문은 언제나 같은 결과를 반환해야한다는 조건에 부합하지 않는다.
+> 
+
+## Repeatable Read
+
+해당 격리레벨에서는 ReadCommitted에 도입된 UnDO 영역에 백업된 업데이트 전 데이터를 활용하여 no repeatable read에 대한 정합성을 유지한다.
+
+ReadCommitted와의 차이점은, REPEATABLE READ 격리 수준에서는 실행중인 트랜잭션 가운데 가장 오래된 트랜잭션 번호보다 트랜잭션 번호가 앞선 언두 영역의 데이터는 삭제할 수 없다.
+
+즉, 언두 영역에 백업된 이전 데이터를 활용하여, 동일한 트랜잭션 내에서는 동일한 결과를 보여줄 수 있도록 보장한다.
+
+<aside>
+💡 그러나, 만일 한 사용자가 트랜잭션을 장시간동안 종료하지 않을 경우, 언두 영역에 백업된 레코드가 많아지면서, MySQL서버의 처리 성능이 떨어질 수 있다. (메모리의 데이터가 많아질 수록, 검색 시간이 길어짐)
+
+</aside>
+
+또한, 쓰기 작업에 대해서는 잠금이 걸리지 않는데,
+
+```java
+transaction A
+Insert ~~~
+commit
+
+transaction B
+select ~~
+select ~~
+```
+
+transactionA를 수행하는 동시에 transactionB의 첫번째 select문을 수행하고, A가 commit을 한 뒤 B에서 두번째 select문을 수행한다고 가정했을 때, undo 영역에는 쓰기 잠금이 걸리지 않아, 같은 트랜잭션임에도 불구하고 다른 결과를 보여주게 된다.
+
+phantom row라 부르며, 정합성을 잃는다.
+
+## Serializable
+
+한 트랜잭션에서 읽고 쓰는 레코드를 다른 트랜잭션에서는 절대 접근할 수 없다.
