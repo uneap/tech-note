@@ -42,8 +42,18 @@ dirty read란, 트랜잭션이 커밋하지 않은 결과를 다른 트랜잭션
 
 위와 같은 가정이라고 한다면,
 
- undo 영역이 존재하여 transaction A에서 update문을 수행 하기 전 데이터를 undo 영역에 저장하고 있는다.
-
+ undo 영역이 존재하여 transaction A에서 update문을 수행 하기 전 데이터를 undo 영역에 저장하고 있다.
+ 예를 들면,
+ ```java
+ transaction A
+ 1 select * from A
+ 4 select * from A
+ transaction B
+ 2 update set a = dgsg from A where a = hello
+ 3 commit
+ ```
+ transaction B의 2 순위 쿼리가 커밋되기 전 데이터는, undo 영역에 저장된다.
+그리고 커밋되면, undo 영역에 있는 데이터는 삭제된다.
 <aside>
 💡 undo 영역이 있음으로써 생기는 특징은,
 롤백을 가능케 한다. 롤백 시, 해당 영역에 기록된 데이터로 롤백한다.
@@ -89,6 +99,15 @@ commit 이후엔 update 문으로 변경된 데이터를 조회한다.
 
 ReadCommitted와의 차이점은, REPEATABLE READ 격리 수준에서는 실행중인 트랜잭션 가운데 가장 오래된 트랜잭션 번호보다 트랜잭션 번호가 앞선 언두 영역의 데이터는 삭제할 수 없다.
 
+ ```java
+ transaction A
+ 1 select * from A
+ 4 select * from A
+ transaction B
+ 2 update set a = dgsg from A where a = hello
+ 3 commit
+ ```
+ Transaction B가 끝나더라도 update되기 전 undo 영역에 저장된 데이터는 삭제되지 않아서 1,4번의 데이터는 동일한 결과가 나온다.
 즉, 언두 영역에 백업된 이전 데이터를 활용하여, 동일한 트랜잭션 내에서는 동일한 결과를 보여줄 수 있도록 보장한다.
 
 <aside>
