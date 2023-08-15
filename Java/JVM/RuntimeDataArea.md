@@ -13,6 +13,7 @@
 ✅ 메서드 영역
 
 ✅ 런타임 상수 풀
+
 ---
 
 ![image](https://github.com/uneap/tech-note/assets/25525648/81a22dac-3418-4f6e-97c9-ba690b8a699b)
