@@ -46,27 +46,47 @@
 ![image (1)](https://github.com/uneap/tech-note/assets/25525648/0d4ceefe-5f4f-4386-b187-e485424de113)
 
 
-힙은 세 영역으로 나눌 수 있다.
+### JDK 7
 
 **Permanent Generation**
 
 <aside>
-💡 사실 상 힙에 포함되어있다고 하기 어렵고, 별개의 영역인 거 같음…
+💡 사실 상 힙에 포함되어있는 건 아닌데, 별개의 힙 영역임. 
+따라서 GC의 대상은 아니나, gc가 수행되기도 함.
 
 </aside>
 
-생성된 객체들의 정보의 **주소값이 저장된 공간**이다. 
-
-**Class loader에 의해 load되는** Class, Method 등에 대한 **Meta 정보가 저장되는 영역**이고 **JVM에 의해 사용**된다.
-
- Reflection을 사용하여 동적으로 클래스가 로딩되는 경우에 사용된다.
-
-내부적으로 Reflection 기능을 자주 사용하는 Spring Framework를 이용할 경우 이 영역에 대한 고려가 필요하다.
+- 생성된 객체들의 정보의 **주소값이 저장된 공간**이다.
+- **Class loader에 의해 load되는** Class, Method 등에 대한 **Meta 정보가 저장되는 영역**이고 **JVM에 의해 사용**된다.
+- Reflection을 사용하여 동적으로 클래스가 로딩되는 경우에 사용된다.
+- 내부적으로 Reflection 기능을 자주 사용하는 Spring Framework를 이용할 경우 이 영역에 대한 고려가 필요하다.
+- OOM이 발생하던 대표적인 이유
+    - collection을 static으로 만들고 계속해서 요소를 추가하는 경우(이런 실수를 범하면 절대 안된다.)
+    - 서버를 재시작하지 않고 변경 내역을 바로바로 반영해주는 HotDeploy를 계속해서 사용하다보면 Class와 Method의 메타데이터가 계속해서 쌓이게 되는데 서버를 주기적으로 재시작해주지 않고, 계속해서 HotDeploy 하는 경우( 실서버에서 이런 경우는 거의 없을 것이다.)
 
 - 메타 데이터란?
     
     클래스 이름, 생성자 정보, 필드 정보, 메소드 정보
     
+### JDK 8
+
+**Meta Space**
+
+기존의 perm Gen 영역이 meta Space로 완전히 대체된 것은 아니지만, 역할 별로 meta space로 나뉘어짐.
+
+|  | Java 7 | Java 8 |
+| --- | --- | --- |
+| Class 메타 데이터 | 저장 | 저장 |
+| Method 메타 데이터 | 저장 | 저장 |
+| Static Object 변수, 상수 | 저장 | Heap 영역으로 이동 |
+| 메모리 튜닝 | Heap, Perm 영역 튜닝 | Heap 튜닝, Native 영역은 OS가 동적 조정 |
+| 메모리 옵션 | -XX:PermSize-XX:MaxPermSize | -XX:MetaspaceSize-XX:MaxMetaspaceSize |
+
+perm generation 영역은 JVM에서 정해진 사이즈만큼 적용되어있어 메모리 사이즈가 작아 OOM이 빈번하게 발생할 수 있었다.(위에서 언급했던 개발자의 실수로 인해..)
+
+이제 meta space가 생기면서 변경 사항이 적은 부분은 OS에서 직접 관리하는 native space로 전환되었으며, static Object는 heap에 속하게 되면서 GC에 대상이 되었다.
+
+따라서 이제 참조를 잃은 static 변수는 GC의 대상이 될 수 있다.
 
 [JDK8 에서 perm 영역이 삭제된 이유](https://www.notion.so/JDK8-perm-dfb2d67416cd4f11a7ae9d16ec9f071d?pvs=21)
 
@@ -85,7 +105,12 @@
 - 대부분 young 영역보다 크게 할당함.
 - 쉽게 가득차지 않기에 GC가 적게 발생함.
 
-## 메서드 영역**(= Class area = Static area)**
+## 메서드 영역 (= Class area = Static area)
+
+> oracle hotspot JVM 벤더에서는 해당 영역을 perm영역(permanent heap에 위치한 영역)과 구분하지 않고 쓰인다.
+
+
+- 해당영역은 GC의 대상이 아니며, 객체의 생명주기가 영구적일 것으로 생각하는 객체들을 관리한다. 그러나  GC 가 이뤄지긴 함.
 
 - 모든 스레드가 공유하는 영역으로 JVM이 시작될 때 생성됨.
 - 클래스 정보를 처음 메모리 공간에 올릴 때 **초기화되는 대상을 저장**하기 위한 메모리 공간.
