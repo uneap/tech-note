@@ -1,7 +1,7 @@
 ## ✍🏻기술 &amp; cs 공부✍🏻
 
 ### - [Kafka](https://github.com/uneap/tech-note/tree/master/Kafka)
-### - [Redis](https://github.com/uneap/tech-note/tree/master/master/Redis)
+### - [Redis](https://github.com/uneap/tech-note/tree/master/Redis)
 ### - [RabbitMQ](https://github.com/uneap/tech-note/tree/master/RabbitMQ)
 ### - [Spring](https://github.com/uneap/tech-note/tree/master/Spring)
 ### - [SpringBatch](https://github.com/uneap/tech-note/tree/master/Spring/batch)
