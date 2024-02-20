@@ -8,7 +8,7 @@ Channel은 가상 연결로써 오버헤드를 낮출 수 있다.
 
 프로듀스와 컨슘을 같이 할 수 있게끔 하는 connection 내부에 정의된 가상의 연결.
 
-https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a
+![https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a](https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a)
 
 채널이 병렬 작업을 수행하는 데 도움이 되는 방법. 
 
@@ -20,13 +20,13 @@ https://faun.pub/rabbitmq-connection-vs-channel-aed1188a7f3a
 
  해당 채널에서 수행된 이전 트랜잭션에 대한 처리가 완료될 때까지 기다려야 함.
 
-!https://miro.medium.com/max/1262/1*E97dIEkmAjuY2zu9jLmCsA.jpeg
+![https://miro.medium.com/max/1262/1*E97dIEkmAjuY2zu9jLmCsA.jpeg](https://miro.medium.com/max/1262/1*E97dIEkmAjuY2zu9jLmCsA.jpeg)
 
 아래 그림과 같이 채널(개수 제한 없음)을 생성하여 실행 속도를 향상시킬 수 있습니다. 
 
 따라서 A서버는 큐에서 메시지를 컨슘하는 동시에 다른 채널에서 메시지를 전송할 수도 있다.
 
-!https://miro.medium.com/max/1280/1*f0F8G8EBh6YOk6v5v_25Ew.jpeg
+![https://miro.medium.com/max/1280/1*f0F8G8EBh6YOk6v5v_25Ew.jpeg](https://miro.medium.com/max/1280/1*f0F8G8EBh6YOk6v5v_25Ew.jpeg)
 
 이것이 RabbitMQ에서 연결과 채널이 관련되는 방식입니다. 연결과 채널 간의 차이점에 대한 생각을 제공하기를 바랍니다.
 
